@@ -1,0 +1,126 @@
+---
+title: "Fluctuations of Top 3 Cryptocurrencies since past 5 years"
+Author: "Riya Minesh Amin/s3807007"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(readr)
+library(dplyr)
+library(plotly)
+library(tidyverse)
+
+
+BTC_USD <- read_csv("D:/BTC-USD.csv", col_types = cols(Date = col_date(format = "%m/%d/%Y")))
+ETH_USD <- read_csv("D:/ETH-USD.csv", col_types = cols(Date = col_date(format = "%m/%d/%Y")))
+USDT_USD <- read_csv("D:/USDT-USD.csv", col_types = cols(Date = col_date(format = "%m/%d/%Y")))
+
+
+#merging all dataset
+
+all_crypto <- merge(merge(
+   BTC_USD,
+   ETH_USD, all = TRUE),
+   USDT_USD, all = TRUE)
+ 
+ 
+#Traded Volume Plot
+
+p11 <- plot_ly(data = all_crypto) %>% 
+    add_lines(x = ~Date, y = ~Volume,name =~crypto, color=~crypto) %>% 
+  layout(title = "", showlegend= list(visible = "BTC-USD"),
+         xaxis=list(zeroline = FALSE,title="Year", font= t,rangeslider = list(type = "date"),
+                      rangeselector = list(
+                         buttons = list(
+             list(count=1,
+                  label='RESET',
+                  step='all'),
+             list(count=1,
+                  label='1 YR',
+                  step='year',
+                  stepmode='backward'),
+             list(count=6,
+                  label='6 M',
+                  step='month',
+                  stepmode='backward'),
+             list(count=3,
+                  label='3 M',
+                  step='month',
+                  stepmode='backward'),
+             list(count=1,
+                  label='1 M',
+                  step='month',
+                  stepmode='backward')))),
+         yaxis=list(zeroline = FALSE,title="Volume"))
+
+  
+  #closing price plots
+
+plot1 <- plot_ly(data = all_crypto) %>% filter(crypto == c("ETH-USD","USDT-USD"))%>%
+    add_lines(x = ~Date, y = ~Close,name =~crypto, color=~crypto, text = ~paste("Open:", Open, "High:", High, "Low:", Low ))  %>% layout(yaxis = list(title = "Closing price (USD)"))
+
+plot2 <- plot_ly(data = all_crypto) %>% filter(crypto == "BTC-USD")%>%
+    add_lines(x = ~Date, y = ~Close,name = "BTC-USD", text = ~paste("Open:", Open, "High:", High, "Low:", Low )) 
+
+
+
+# subplot with shared x axis
+fig <- subplot(plot2, plot1, heights = c(0.75,0.25), nrows=2,
+             shareX = TRUE, titleY = TRUE)
+
+fig <- fig %>% layout(title = "",
+         xaxis=list(zeroline = FALSE,title="Year",rangeslider = list(type = "date"),
+                      rangeselector = list(
+                         buttons = list(
+             list(count=1,
+                  label='RESET',
+                  step='all'),
+             list(count=1,
+                  label='1 YR',
+                  step='year',
+                  stepmode='backward'),
+             list(count=6,
+                  label='6 M',
+                  step='month',
+                  stepmode='backward'),
+              list(count=3,
+                  label='3 M',
+                  step='month',
+                  stepmode='backward'),
+             list(count=1,
+                  label='1 M',
+                  step='month',
+                  stepmode='backward')))),
+         yaxis=list(zeroline = FALSE,title="Closing Price (USD)"))
+
+ 
+```
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### Traded Volume of the top 3 Cryptocurrencies over 5 years (2015-2020)
+
+*Drag the slider below the plot to have a more closer look at the cryptocurrencies performance*
+
+```{r}
+
+ p11
+```
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### Closing Price over 5 years (2015-2020)
+*Drag the slider below the plot to have a more closer look at the cryptocurrencies performance*
+
+```{r}
+ fig
+
+```
+
+
